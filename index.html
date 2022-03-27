@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Major Assignment 3 - Sreekanth Radhakrishnan</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="scatter_plot.js"></script>
+    <script src="bar_plot.js"></script>
+
+    <link rel="stylesheet" href="./styles/style.css">
+    <style>
+        .fig {
+            fill: #faf8f8;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 60vw;
+        }
+
+        td {
+            border: 1px solid #d2bcbc;
+            border-collapse: collapse;
+            padding: 10px;
+            width: 10vw;
+        }
+
+        div.selector label, select {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        #viz {
+            display: none;
+        }
+    </style>
+    <script src="./lib/d3.js"></script>
+
+
+</head>
+
+<body>
+    <div class="selector">
+        <label for="species">Choose a Penquin Species:</label>
+
+        <select name="species" id="speciesSelector">
+            <option value="">Select a species</option>
+            <option value="Adelie">Adelie</option>
+            <option value="Gentoo">Gentoo</option>
+            <option value="mercedes">Chinstrap</option>
+        </select>
+    </div>
+
+    <table id="viz">
+        <tr>
+            <td><svg width="500px" height="150px" id="top"></svg></td>
+            <td width="10%">&nbsp</td>
+        </tr>
+        <tr>
+            <td><svg width="500px" height="500px" viewBox="0 0 1000 1000" id="main"></svg></td>
+            <td><svg width="150px" height="500px" id="right"></svg></td>
+        </tr>
+    </table>
+
+    <script>
+        let palmer_penguin_species = "./data/palmer_penguin_species.tsv";
+        // loading data
+
+        $('#speciesSelector').on('change', function (i) {
+            selectedSpecies = $('#speciesSelector').find(":selected").text();
+            
+
+            d3.select('#viz').style('display','block');
+            d3.select('#main').html("");
+            d3.select('#right').html("");
+            d3.select('#top').html("");
+
+            if (selectedSpecies === 'Select a species') {
+                d3.select('#viz').style('display', 'none');
+                return;
+            }
+
+            d3.select('#viz').style('display', 'block');
+
+            Promise.all([
+                d3.tsv(palmer_penguin_species)
+            ]).then(d => {
+                main(d[0], selectedSpecies)
+            })
+        })
+
+        // Subplots
+        let fig_main = d3.select("#main")
+            .append("g")
+            .append('rect')
+            .attr("class", "fig")
+            .attr("width", "100%")
+            .attr("height", "100%")
+        // top svg
+        let fig_top = d3.select("#top")
+            .append("g")
+            .append('rect')
+            .attr("class", "fig")
+            .attr("width", "100%")
+            .attr("height", "100%")
+        // right svg
+        let fig_right = d3.select("#right")
+            .append("g")
+            .append('rect')
+            .attr("class", "fig")
+            .attr("width", "100%")
+            .attr("height", "100%")
+
+        function main(indata, selectedSpecies) {
+
+            data = indata.filter(d => d.species === selectedSpecies);
+
+            // fetch data from table
+            let culmen_length_mm = d3.map(data, function (d) {
+                return +d.culmen_length_mm
+            })
+            let culmen_depth_mm = d3.map(data, function (d) {
+                return +d.culmen_depth_mm
+            })
+            let flipper_length_mm = d3.map(data, function (d) {
+                return +d.flipper_length_mm
+            })
+            let islands = d3.map(data, function (d) {
+                return d.island
+            })
+            let islands_types = new Set(islands)
+
+            let islands_code = d3.map(data, function (d) {
+                islands = d.island
+                if (islands === "Torgersen") {
+                    return 0
+                } else if (islands === "Biscoe") {
+                    return 1
+                } else {
+                    return 2
+                }
+            })
+
+            // main svg
+            scatter_plot(culmen_length_mm,
+                culmen_depth_mm,
+                10,
+                islands_code,
+                'main'
+                , title = 'Penguin Distribution over islands',
+                xLabel = "culmen_length_mm",
+                yLabel = "culmen_depth_mm",
+                100,
+                data);
+            //#############
+            bar_plot(culmen_length_mm, 10, 'top')
+            h_bar_plot(culmen_depth_mm, 10, 'right')
+
+        }
+    </script>
+
+</body>
+
+</html>
