@@ -26,7 +26,6 @@ function bar_plot(Values, //column values to make histogram of
 
 
     let bins = histogram(Values);
-    console.log(bins)
 
     // y will represent number of elements inside each bin!
     let yScale = d3.scaleLinear()
@@ -84,7 +83,7 @@ function h_bar_plot(Values, //column values to make histogram of
 
     // step 3 use the data to calculate histogram bin values
     let bins = histogram(Values);
-    console.log(bins)
+
     // step 4, now that we have the  bins and their numbers we can make the xscale
     let xScale = d3.scaleLinear()
         .domain([0, d3.max(bins, function (d) { return d.length })])
